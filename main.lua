@@ -201,6 +201,7 @@ local function main(argv)
 		local optimizer = optim.adamax
 		local optimizer_parameters = { }
 
+-- This is where the neural network is constructed.
 		local mlp = nn.Sequential()
 		mlp:add(nn.Linear(trainset.data:size(2)*trainset.data:size(3), sz))
 		mlp:add(nn.ReLU())
@@ -218,7 +219,7 @@ local function main(argv)
 		local mlp_parameters, mlp_gradients = mlp:getParameters()
 
 		local logfiles = { io.stderr, io.open(opt.mathematica, "w") }
-		multiwrite(logfiles,"{")
+		multiwrite(logfiles,string.format("%s%s%dx%d = {", opt.type, opt.set, opt.layers, opt.size))
 		for iter = 0, iters
 		do
 			single_epoch(trainset, crit, optimizer, mlp, mlp_parameters, mlp_gradients, optimizer_parameters, 1000)
@@ -231,7 +232,7 @@ local function main(argv)
 			iter = iter + 1
 			multiwrite(logfiles,string.format("\n	{ %d, %.7f, %.7f, %.7f, %.7f }", iter, train_error, train_kl, test_error, test_kl))
 		end
-		multiwrite(logfiles,"\n}\n")
+		multiwrite(logfiles,"\n};\n")
 	end
 end
 
