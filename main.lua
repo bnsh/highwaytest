@@ -12,7 +12,7 @@ local cmd = torch.CmdLine()
 cmd:text('Testing the HighwayLayers')
 cmd:text()
 cmd:text('Options')
-cmd:option('-mathematica', '/dev/null', 'Mathematica output file')
+cmd:option('-json', '/dev/null', 'json output file')
 cmd:option('-type', 'vanilla', 'layer type: should be vanilla or highway')
 cmd:option('-set', 'mnist', 'input set: should be mnist or xor')
 cmd:option('-layers', 2, 'number of layers')
@@ -196,7 +196,7 @@ local function main(argv)
 		local layers = opt.layers
 		local sz = opt.size
 		local iters = opt.max_epochs
-		local fh = io.open(opt.mathematica, "w")
+		local fh = io.open(opt.json, "w")
 		local transfer = nn.ReLU()
 		local optimizer = optim.adamax
 		local optimizer_parameters = { }
@@ -218,8 +218,8 @@ local function main(argv)
 
 		local mlp_parameters, mlp_gradients = mlp:getParameters()
 
-		local logfiles = { io.stderr, io.open(opt.mathematica, "w") }
-		multiwrite(logfiles,string.format("%s%s%dx%d = {", opt.type, opt.set, opt.layers, opt.size))
+		local logfiles = { io.stderr, io.open(opt.json, "w") }
+		multiwrite(logfiles,"[")
 		for iter = 0, iters
 		do
 			single_epoch(trainset, crit, optimizer, mlp, mlp_parameters, mlp_gradients, optimizer_parameters, 1000)
@@ -230,9 +230,9 @@ local function main(argv)
 				multiwrite(logfiles,",")
 			end
 			iter = iter + 1
-			multiwrite(logfiles,string.format("\n	{ %d, %.7f, %.7f, %.7f, %.7f }", iter, train_error, train_kl, test_error, test_kl))
+			multiwrite(logfiles,string.format("\n	[ %d, %.7f, %.7f, %.7f, %.7f ]", iter, train_error, train_kl, test_error, test_kl))
 		end
-		multiwrite(logfiles,"\n};\n")
+		multiwrite(logfiles,"\n]\n")
 	end
 end
 
