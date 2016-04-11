@@ -1,6 +1,6 @@
 #! /bin/bash
 
-DIR="/tmp/highwaytest"
+DIR="results"
 GPUID="0"
 TYPE="vanilla"
 DATASET="mnist"
@@ -10,5 +10,5 @@ mkdir -p "${DIR}"
 
 for layers in 2 5 10 20 50 100
 do
-	th main.lua -gpuid 0 -cudnn 1 -mathematica "${DIR}/${TYPE}-${DATASET}-${layers}.m" -type "${TYPE}" -set "${DATASET}" -layers "${layers}" -size "${SIZE}" -max_epochs 400
+	th main.lua -gpuid "${GPUID}" -cudnn 1 -json "${DIR}/${TYPE}-${DATASET}-${layers}.json" -type "${TYPE}" -set "${DATASET}" -layers "${layers}" -size "${SIZE}" -max_epochs 400
 done
