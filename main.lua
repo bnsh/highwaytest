@@ -4,7 +4,7 @@ require "nn"
 require "nngraph"
 require "optim"
 require "no_globals"
-require "HighwayMLP"
+local HighwayMLP = require "HighwayMLP"
 local xor = require "xor"
 local mnist = require "mnist"
 
