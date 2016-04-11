@@ -7,6 +7,7 @@ require "no_globals"
 local HighwayMLP = require "HighwayMLP"
 local xor = require "xor"
 local mnist = require "mnist"
+local weight_init = require "weight-init"
 
 local cmd = torch.CmdLine()
 cmd:text('Testing the HighwayLayers')
@@ -110,7 +111,7 @@ local function single_epoch(trainset, crit, optimizer, mlp, mlp_parameters,mlp_g
 				local err = crit:forward(o, subset.onehot)
 				mlp:backward(subset.data, crit:backward(mlp.output, subset.onehot))
 				mlp:training()
-				mlp_gradients:clamp(-10,10)
+				-- mlp_gradients:clamp(-10,10)
 				return err, mlp_gradients
 			end
 			local _, fs = optimizer(evaluator, mlp_parameters, optimizer_params)
@@ -202,12 +203,17 @@ local function main(argv)
 		local optimizer_parameters = { }
 
 -- This is where the neural network is constructed.
+		local bias = -math.floor(layers/10)-1
+		io.stderr:write(string.format("Using a bias of %.7f for a %d layer neural network\n", bias, layers))
 		local mlp = nn.Sequential()
 		mlp:add(nn.Linear(trainset.data:size(2)*trainset.data:size(3), sz))
 		mlp:add(nn.ReLU())
-		mlp:add(midlayertype(sz, layers, -math.floor(sz/10)-1, transfer))
+		mlp:add(midlayertype(sz, layers, bias, transfer))
 		mlp:add(nn.Linear(sz, 1+torch.max(trainset.label)))
 		mlp:add(nn.LogSoftMax())
+
+		weight_init(mlp, "kaiming")
+
 		local crit = nn.DistKLDivCriterion()
 		crit.sizeAverage = false
 
@@ -233,6 +239,7 @@ local function main(argv)
 			multiwrite(logfiles,string.format("\n	[ %d, %.7f, %.7f, %.7f, %.7f ]", iter, train_error, train_kl, test_error, test_kl))
 		end
 		multiwrite(logfiles,"\n]\n")
+		for i,lf in ipairs(logfiles) do lf:close() end
 	end
 end
 
