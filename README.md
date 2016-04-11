@@ -16,6 +16,7 @@ Basically just run
 	  -cudnn       Use CUDNN [0]
 
 So, I plan to do this:
+
 	for layers in 10 20 50 100
 	do
 		th main.lua -gpuid 0 -cudnn 1 -json "results/"vanilla-${layers}.json" -type vanilla -set mnist -layers "${layers}" -size 71 -max_epochs 400 
