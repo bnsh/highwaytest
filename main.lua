@@ -197,7 +197,6 @@ local function main(argv)
 		local layers = opt.layers
 		local sz = opt.size
 		local iters = opt.max_epochs
-		local fh = io.open(opt.json, "w")
 		local transfer = nn.ReLU()
 		local optimizer = optim.adamax
 		local optimizer_parameters = { }
