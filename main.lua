@@ -19,7 +19,7 @@ cmd:option('-set', 'mnist', 'input set: should be mnist or xor')
 cmd:option('-layers', 2, 'number of layers')
 cmd:option('-size', 71, 'hidden layer size')
 cmd:option('-max_epochs', 200, 'number of full passes through the training data')
-cmd:option('-seed', -1, 'torch manual random number generator seed')
+cmd:option('-seed', 12345, 'torch manual random number generator seed')
 cmd:option('-gpuid', -1, 'which gpu to use. -1 = use CPU')
 cmd:option('-cudnn', 0, 'Use CUDNN')
 
