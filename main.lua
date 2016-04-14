@@ -128,8 +128,8 @@ local function single_epoch(trainset, crit, optimizer, mlp, mlp_parameters,mlp_g
 				local err = crit:forward(o, subset.onehot)
 				mlp:backward(subset.data, crit:backward(mlp.output, subset.onehot))
 				mlp:training()
-				-- mlp:gradParamClip(1)
-				mlp_gradients:clamp(-2,2)
+				mlp:gradParamClip(10)
+				-- mlp_gradients:clamp(-2,2)
 				assert(mlp_gradients:ne(mlp_gradients):sum() == 0)
 				return err, mlp_gradients
 			end
