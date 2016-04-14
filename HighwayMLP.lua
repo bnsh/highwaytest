@@ -1,6 +1,6 @@
 local HighwayMLP = {}
 
-function HighwayMLP.mlp(size, num_layers, bias, f)
+function HighwayMLP.mlp(size, num_layers, bias, dropout, f)
     -- size = dimensionality of inputs
     -- num_layers = number of hidden layers (default = 1)
     -- bias = bias for transform gate (default = -2)
@@ -13,8 +13,8 @@ function HighwayMLP.mlp(size, num_layers, bias, f)
     local input = nn.Identity()()
     local inputs = {[1]=input}
     for i = 1, num_layers do        
-        output = f(nn.Linear(size, size)(inputs[i]))
-        transform_gate = nn.Sigmoid()(nn.AddConstant(bias)(nn.Linear(size, size)(inputs[i])))
+        output = f(nn.Linear(size, size)(nn.Dropout(dropout)(inputs[i])))
+        transform_gate = nn.Sigmoid()(nn.AddConstant(bias)(nn.Linear(size, size)(nn.Dropout(dropout)(inputs[i]))))
         carry_gate = nn.AddConstant(1)(nn.MulConstant(-1)(transform_gate))
 	output = nn.CAddTable()({
 	       nn.CMulTable()({transform_gate, output}),

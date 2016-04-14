@@ -19,6 +19,7 @@ cmd:option('-type', 'vanilla', 'layer type: should be vanilla or highway')
 cmd:option('-set', 'mnist', 'input set: should be mnist or xor')
 cmd:option('-layers', 2, 'number of layers')
 cmd:option('-size', 71, 'hidden layer size')
+cmd:option('-dropout', 0.0, 'dropout')
 cmd:option('-max_epochs', 200, 'number of full passes through the training data')
 cmd:option('-seed', 12345, 'torch manual random number generator seed')
 cmd:option('-gpuid', -1, 'which gpu to use. -1 = use CPU')
@@ -44,10 +45,11 @@ if opt.cudnn == 1 then
 end
 
 
-local function vanilla(size, num_layers, _, f)
+local function vanilla(size, num_layers, _, dropout, f)
 	local block = nn.Sequential()
 	for i = 1,num_layers
 	do
+		block:add(nn.Dropout(dropout))
 		block:add(nn.Linear(size, size))
 		block:add(f:clone())
 	end
@@ -227,7 +229,7 @@ local function main(argv)
 		local mlp = nn.Sequential()
 		mlp:add(nn.Linear(trainset.data:size(2)*trainset.data:size(3), sz))
 		mlp:add(transfer:clone())
-		mlp:add(midlayertype(sz, layers, bias, transfer))
+		mlp:add(midlayertype(sz, layers, bias, opt.dropout, transfer))
 		mlp:add(nn.Linear(sz, 1+torch.max(trainset.label)))
 		mlp:add(nn.LogSoftMax())
 
