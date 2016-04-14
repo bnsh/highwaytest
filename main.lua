@@ -112,6 +112,7 @@ local function single_epoch(trainset, crit, optimizer, mlp, mlp_parameters,mlp_g
 				mlp:backward(subset.data, crit:backward(mlp.output, subset.onehot))
 				mlp:training()
 				mlp_gradients:clamp(-2,2)
+				assert(mlp_gradients:ne(mlp_gradients):sum() == 0)
 				return err, mlp_gradients
 			end
 			local _, fs = optimizer(evaluator, mlp_parameters, optimizer_params)
