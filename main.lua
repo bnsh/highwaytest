@@ -8,6 +8,7 @@ local HighwayMLP = require "HighwayMLP"
 local xor = require "xor"
 local mnist = require "mnist"
 local weight_init = require "weight-init"
+local dpnn = require "dpnn"
 
 local cmd = torch.CmdLine()
 cmd:text('Testing the HighwayLayers')
@@ -57,6 +58,21 @@ local function highway(sz, num_layers, bias, f)
 	return HighwayMLP.mlp(sz, num_layers, bias, f)
 end
 
+local function scale(raw,smin,smax)
+	if smin == nil then
+		smin = -1
+	end
+	if smax == nil then
+		smax = 1
+	end
+	local min = raw:min()
+	local max = raw:max()
+	local a = (smax-smin) / (max-min)
+	local b = (max * smin - min * smax)/(max-min)
+	local rv = torch.add(torch.mul(raw, a), b)
+	return rv
+end
+
 local function minibatch_generator(set, batchsz)
 	local sz = set.data:size(1)
 	local shuffle = torch.randperm(sz):long()
@@ -72,7 +88,8 @@ local function minibatch_generator(set, batchsz)
 			local slabel = set.label:index(1, indices):long()
 			local sonehot = set.onehot:index(1, indices)
 			subset = {
-				data=torch.add(torch.div(sdata:double(), 255), -0.5),
+-- We have to rescale here, the same way that we rescale in compute_error.
+				data=scale(sdata:double()),
 				size=endpos-pos+1,
 				onehot=sonehot,
 				label=slabel
@@ -111,6 +128,7 @@ local function single_epoch(trainset, crit, optimizer, mlp, mlp_parameters,mlp_g
 				local err = crit:forward(o, subset.onehot)
 				mlp:backward(subset.data, crit:backward(mlp.output, subset.onehot))
 				mlp:training()
+				-- mlp:gradParamClip(1)
 				mlp_gradients:clamp(-2,2)
 				assert(mlp_gradients:ne(mlp_gradients):sum() == 0)
 				return err, mlp_gradients
@@ -131,7 +149,8 @@ local function compute_error(mlp, crit, set, batchsz)
 	do
 		local endpos = math.min(pos + batchsz-1, set.data:size(1))
 		local rng = torch.range(pos, endpos):long()
-		local input = set.data:index(1,rng):reshape(rng:size(1), set.data:size(2)*set.data:size(3)):double()
+-- We have to rescale here, the same way that we rescale in minibatch_generator.
+		local input = scale(set.data:index(1,rng):reshape(rng:size(1), set.data:size(2)*set.data:size(3)):double())
 		local target = set.label:index(1,rng):long()
 		local oh = set.onehot:index(1,rng)
 
